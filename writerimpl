@@ -1,0 +1,13 @@
+@Bean
+public JdbcBatchItemWriter<MyEntity> writer(DataSource dataSource) {
+    JdbcBatchItemWriter<MyEntity> writer = new JdbcBatchItemWriter<>();
+    writer.setDataSource(dataSource);
+    writer.setSql("INSERT INTO my_table (id, name) VALUES (:id, :name)");
+    writer.setItemSqlParameterSourceProvider(new SkipExistingItemSqlParameterSourceProvider(new JdbcTemplate(dataSource)));
+    writer.setAssertUpdates(false);
+    writer.setValidationQuery("SELECT 1");
+    writer.setItemPreparedStatementSetter(new BeanPropertyItemPreparedStatementSetter<>());
+    writer.setDatabaseProductName(DatabaseType.valueOf(dataSource).getName());
+    writer.setMode(JdbcBatchItemWriter.Mode.UPDATE);
+    return writer;
+}
