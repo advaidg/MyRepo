@@ -1,0 +1,20 @@
+public class SkipExistingItemSqlParameterSourceProvider implements ItemSqlParameterSourceProvider<MyEntity> {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public SkipExistingItemSqlParameterSourceProvider(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    @Override
+    public SqlParameterSource createSqlParameterSource(MyEntity item) {
+        boolean exists = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM my_table WHERE id = ?", Integer.class, item.getId()) > 0;
+        if (exists) {
+            return null; // skip existing record
+        } else {
+            // create parameter source normally
+            return new BeanPropertySqlParameterSource(item);
+        }
+    }
+}
