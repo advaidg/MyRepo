@@ -1,0 +1,15 @@
+@Bean
+public JdbcCursorItemReader<MyObject> itemReader(DataSource dataSource) {
+    JdbcCursorItemReader<MyObject> itemReader = new JdbcCursorItemReader<>();
+    itemReader.setDataSource(dataSource);
+    itemReader.setSql("SELECT * FROM XY WHERE PRT=? AND XY IN (?)");
+    itemReader.setPreparedStatementSetter(new PreparedStatementSetter() {
+        public void setValues(PreparedStatement ps) throws SQLException {
+            ps.setString(1, "value1");
+            Array array = ps.getConnection().createArrayOf("VARCHAR", new Object[] { "product1", "product2" });
+            ps.setArray(2, array);
+        }
+    });
+    itemReader.setRowMapper(new MyObjectRowMapper());
+    return itemReader;
+}
