@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Input Portfolio Name') {
+            steps {
+                script {
+                    def portfolioName = input(
+                        id: 'portfolioName',
+                        message: 'Enter the name of the portfolio:',
+                        parameters: [string(defaultValue: '', description: 'Portfolio Name', name: 'PORTFOLIO_NAME')]
+                    )
+                    PORTFOLIO_ID = getPortfolioIdByName(portfolioName)
+                }
+            }
+        }
+
+        stage('Get Project Data') {
+            steps {
+                script {
+                    if (!PORTFOLIO_ID) {
+                        error("Portfolio ID not found.")
+                    }
+
+                    def qualityGateLabels = ['A', 'B', 'C', 'D', 'E', 'F']
+
+                    for (String qualityGate : qualityGateLabels) {
+                        def projectCount = getProjectCountInQualityGate(qualityGate)
+                        echo "Quality Gate $qualityGate: $projectCount projects"
+                    }
+                }
+            }
+        }
+    }
+}
+
+def getPortfolioIdByName(String portfolioName) {
+    def apiUrl = "${SONARQUBE_SERVER}/api/portfolios/search"
+    def apiParams = [
+        q: portfolioName,
+    ]
+
+    def curlCommand = """
+        curl -s -X GET "$apiUrl" \\
+        -H "Authorization: Bearer $SONARQUBE_API_TOKEN" \\
+        -G --data-urlencode "q=${apiParams.q}"
+    """
+
+    def response = bat(script: curlCommand, returnStatus: true).trim()
+
+    if (response == '0') {
+        def jsonResponse = bat(script: curlCommand, returnStdout: true).trim()
+        def portfolios = readJSON text: jsonResponse
+        if (portfolios.portfolios.size() > 0) {
+            return portfolios.portfolios[0].uuid
+        }
+    }
+
+    return null
+}
+
+// Define SONARQUBE_SERVER, SONARQUBE_API_TOKEN, and other environment variables here.
