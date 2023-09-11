@@ -50,10 +50,10 @@ def getPortfolioIdByName(String portfolioName) {
         -G --data-urlencode "q=${apiParams.q}"
     """
 
-    def response = bat(script: curlCommand, returnStatus: true).trim()
+    def response = sh(script: curlCommand, returnStatus: true).trim()
 
-    if (response == '0') {
-        def jsonResponse = bat(script: curlCommand, returnStdout: true).trim()
+    if (response == 0) {
+        def jsonResponse = sh(script: curlCommand, returnStdout: true).trim()
         def portfolios = readJSON text: jsonResponse
         if (portfolios.portfolios.size() > 0) {
             return portfolios.portfolios[0].uuid
@@ -79,10 +79,10 @@ def getProjectCountInQualityGate(String qualityGate) {
         --data-urlencode "gate=${apiParams.gate}"
     """
 
-    def response = bat(script: curlCommand, returnStatus: true).trim()
+    def response = sh(script: curlCommand, returnStatus: true).trim()
 
-    if (response == '0') {
-        def jsonResponse = bat(script: curlCommand, returnStdout: true).trim()
+    if (response == 0) {
+        def jsonResponse = sh(script: curlCommand, returnStdout: true).trim()
         def projectCount = readJSON text: jsonResponse
         return projectCount.components.size()
     } else {
