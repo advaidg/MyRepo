@@ -1,0 +1,24 @@
+# Use a Linux base image
+FROM ubuntu:latest
+
+# Copy the Oracle Instant Client files to the image
+COPY instantclient-basic-linux-*.zip /tmp/
+COPY instantclient-sqlplus-linux-*.zip /tmp/
+
+# Install required tools
+RUN apt-get update && apt-get install -y unzip && apt-get clean
+
+# Extract and install Instant Client
+RUN unzip /tmp/instantclient-basic-linux-*.zip -d /opt && \
+    unzip /tmp/instantclient-sqlplus-linux-*.zip -d /opt && \
+    ln -s /opt/instantclient_* /opt/instantclient
+
+# Set environment variables
+ENV LD_LIBRARY_PATH=/opt/instantclient
+ENV PATH=/opt/instantclient:$PATH
+
+# Cleanup
+RUN rm -rf /tmp/*.zip
+
+# Start a shell when the container runs
+CMD ["/bin/bash"]
