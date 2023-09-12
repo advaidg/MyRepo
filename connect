@@ -1,0 +1,1 @@
+sqlplus "<username>/<password>@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=xyz.dis.com)(PORT=3090))(CONNECT_DATA=(SID=d_dc,cn=OracleContext,dc=dfs.com,dc=com)))"
