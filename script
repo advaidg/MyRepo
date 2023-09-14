@@ -1,0 +1,9 @@
+for i in {1..10}; do
+    response=$(curl -s -o /dev/null -w "%{http_code}" http://your-api-endpoint)
+    if [ "$response" == "200" ]; then
+        echo "Request $i: Success (HTTP 200 OK)"
+    else
+        echo "Request $i: Failed (HTTP $response)"
+        exit 1
+    fi
+done
