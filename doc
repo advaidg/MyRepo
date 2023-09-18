@@ -1,0 +1,19 @@
+Parameters: When triggering the pipeline, provide values for EXCLUDE_CHART_NAMES (comma-separated list of chart names to exclude) and CREATED_BEFORE_DATE (created before date in YYYY-MM-DD format).
+
+Purpose: This pipeline uninstalls Helm releases based on provided criteria, excluding specific charts and those created before a certain date.
+
+Exclude Charts: To exclude specific charts from uninstallation, enter their names in EXCLUDE_CHART_NAMES parameter.
+
+Date Format: Ensure CREATED_BEFORE_DATE follows the format YYYY-MM-DD for proper date filtering.
+
+Execution: The pipeline will list Helm releases, filter them based on your input, and uninstall eligible releases.
+
+Output: You will see messages indicating which releases were uninstalled, along with their creation dates.
+
+Validation: Double-check input values and ensure Helm and jq are installed in your Jenkins environment.
+
+Customization: Modify the pipeline script to fit your specific needs or to enhance error handling.
+
+Troubleshooting: If you encounter issues, refer to Jenkins logs and consult Jenkins documentation for help.
+
+Feedback: Share feedback or report any problems with the pipeline to your Jenkins administrator or support team for assistance.
