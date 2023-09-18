@@ -1,1 +1,4 @@
 =TRIM(MID(A1,SEARCH("'name' :",A1)+9,SEARCH(",",A1,SEARCH("'name' :",A1))-SEARCH("'name' :",A1)-9))
+
+
+=TRIM(MID(A1,SEARCH("'name' :",A1)+10,SEARCH("'",A1,SEARCH("'name' :",A1)+10)-SEARCH("'name' :",A1)-10))
