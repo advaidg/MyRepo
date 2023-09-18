@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    
+    environment {
+        CHART_NAME = "your-chart-name"  // Replace with your desired chart name
+        CREATED_BEFORE_DATE = "2023-01-01"  // Replace with the desired date in YYYY-MM-DD format
+    }
+    
+    stages {
+        stage('Uninstall Helm Releases') {
+            steps {
+                script {
+                    def releases = sh(script: "helm list --output json", returnStdout: true).trim()
+                    def jsonSlurper = new groovy.json.JsonSlurper()
+                    def releaseList = jsonSlurper.parseText(releases)
+
+                    for (release in releaseList) {
+                        def releaseName = release.name
+                        def releaseChart = release.chart
+
+                        if (releaseChart == CHART_NAME) {
+                            def releaseCreated = sh(script: "helm status $releaseName --output json | jq -r .info.first_deployed", returnStdout: true).trim()
+                            
+                            // Compare the releaseCreated date with CREATED_BEFORE_DATE
+                            def createdDate = releaseCreated.toDate()
+                            def cutoffDate = CREATED_BEFORE_DATE.toDate()
+                            
+                            if (createdDate < cutoffDate) {
+                                echo "Uninstalling release: $releaseName created on $releaseCreated"
+                                sh "helm uninstall $releaseName"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
