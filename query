@@ -1,0 +1,1 @@
+"As we aim to enable our application teams to run automation test suites within  pods as part of our in an on-premises Jenkins environment, we need to securely access code from GitHub repositories. Could you please clarify where and how we should obtain the required credentials for accessing GitHub repositories within these  pods?"
