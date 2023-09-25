@@ -1,0 +1,63 @@
+import openpyxl
+import requests
+import json
+import sys
+
+def read_excel(file_path, sheet_name):
+    workbook = openpyxl.load_workbook(file_path)
+    sheet = workbook[sheet_name]
+    
+    data = []
+    
+    for row in sheet.iter_rows(min_row=2, values_only=True):
+        key = row[0]
+        data.append(key)
+    
+    return data
+
+def fetch_coverage(key, sonarqube_url, sonarqube_token):
+    headers = {
+        'Authorization': f'Basic {sonarqube_token}',
+    }
+    
+    response = requests.get(sonarqube_url, headers=headers)
+    
+    if response.status_code == 200:
+        json_response = json.loads(response.text)
+        coverage_value = json_response['component']['measures'][0]['value']
+        return coverage_value
+    
+    return None
+
+def create_excel(input_excel_file, output_excel_file, sonarqube_token):
+    keys = read_excel(input_excel_file, 'Sheet1')
+    
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    
+    # Add headers
+    sheet.append(["Key", "Coverage"])
+    
+    # Iterate over the keys and fetch coverage data
+    for key in keys:
+        sonarqube_url = f"http://your-sonarqube-server/api/measures/component?component={key}&metricKeys=coverage"
+        coverage_value = fetch_coverage(key, sonarqube_url, sonarqube_token)
+        
+        # Add key and coverage to the sheet
+        sheet.append([key, coverage_value])
+    
+    # Save the Excel workbook
+    workbook.save(output_excel_file)
+
+if __name__ == "__main__":
+    # Check the command-line arguments
+    if len(sys.argv) < 4:
+        print("Usage: python excel_operations.py <input_excel_file> <output_excel_file> <sonarqube_token>")
+        sys.exit(1)
+    
+    input_excel_file = sys.argv[1]
+    output_excel_file = sys.argv[2]
+    SONARQUBE_TOKEN = sys.argv[3]
+    
+    # Create the Excel file with coverage data
+    create_excel(input_excel_file, output_excel_file, SONARQUBE_TOKEN)
