@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    
+    parameters {
+        file(name: 'inputExcel', description: 'Upload the input Excel file', allowedFileExtensions: ['xlsx'])
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Retrieve Coverage') {
+            steps {
+                script {
+                    // Define the input Excel file path
+                    def inputExcelFilePath = "${WORKSPACE}/${params.inputExcel}"
+                    
+                    // Call the Python script to read Excel
+                    def keys = bat(script: "python excel_operations.py read ${inputExcelFilePath} Sheet1", returnStatus: true, returnStdout: true).trim().split('\n')
+                    
+                    // Create an empty list to store data
+                    def data = []
+                    
+                    // Iterate over the keys and fetch coverage data from SonarQube
+                    keys.each { key ->
+                        def sonarqubeUrl = "${SONARQUBE_SERVER}/api/measures/component?component=${key}&metricKeys=coverage"
+                        
+                        // Use the SonarQube Scanner plugin to fetch the coverage value
+                        def sonarqubeResponse = bat(script: "curl -s -u ${SONARQUBE_TOKEN}: ${sonarqubeUrl}", returnStatus: true, returnStdout: true)
+                        
+                        // Parse the JSON response to extract the coverage value
+                        def coverageValue = readJSON(text: sonarqubeResponse).component.measures[0].value
+                        
+                        // Add the key and coverage value to the data list
+                        data.add([key, coverageValue])
+                    }
+                    
+                    // Call the Python script to write Excel
+                    def outputExcelFilePath = "${WORKSPACE}/output.xlsx"
+                    bat(script: "python excel_operations.py write ${outputExcelFilePath}", returnStatus: true)
+                    
+                    // Archive the output Excel file as a build artifact
+                    archiveArtifacts artifacts: outputExcelFilePath, allowEmptyArchive: true
+                }
+            }
+        }
+    }
+}
