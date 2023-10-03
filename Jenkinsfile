@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent {
+docker { image 'benhall/dind-jenkins-agent' }
+  }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
   }
