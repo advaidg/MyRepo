@@ -1,0 +1,1 @@
+assignee = "{user_to_check}" AND created >= "{date_to_check} 00:00" AND created <= "{date_to_check} 23:59"
