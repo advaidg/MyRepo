@@ -1,4 +1,5 @@
 assignee = "{user_to_check}" AND created >= "{date_to_check} 00:00" AND created <= "{date_to_check} 23:59"
+GET /rest/api/2/activity?maxResults=<max_results>&streams=user+IS+<username>
 
 
 curl -u <username>:<api_token> -X GET "https://your-jira-instance.atlassian.net/rest/api/2/auditing/record?filter=searchEntity=%3Cuser-account-id%3E&dateFrom=yyyy-MM-ddT00:00:00.000Z&dateTo=yyyy-MM-ddT23:59:59.999Z"
