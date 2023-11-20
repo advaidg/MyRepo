@@ -13,3 +13,7 @@ public JdbcCursorItemReader<MyObject> itemReader(DataSource dataSource) {
     itemReader.setRowMapper(new MyObjectRowMapper());
     return itemReader;
 }
+
+
+
+jdbc test
