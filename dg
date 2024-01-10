@@ -1,0 +1,12 @@
+  annotations:
+    ad.datadoghq.com/controller.check_names: '["openmetrics"]'
+    ad.datadoghq.com/controller.init_configs: '[{}]'
+    ad.datadoghq.com/controller.instances: |
+      [
+        {
+          "openmetrics_endpoint": "http://127.0.0.1:9146/metrics",
+          "namespace": "argo-workflows",
+          "metrics": ["argo_workflows_*"],
+          "max_returned_metrics": 5300
+        }
+      ]
