@@ -1,0 +1,13 @@
+with open('file1.txt', 'r') as file1, open('file2.txt', 'r') as file2:
+    lines1 = file1.readlines()
+    lines2 = file2.readlines()
+
+differing_lines = []
+
+for i, (line1, line2) in enumerate(zip(lines1, lines2)):
+    if line1.strip() != line2.strip():
+        differing_lines.append((i+1, line1.strip(), line2.strip()))
+
+# Print or save the differing lines
+for line_number, line1, line2 in differing_lines:
+    print(f"Line {line_number}: {line1} | {line2}")
