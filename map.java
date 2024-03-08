@@ -1,15 +1,28 @@
-    public JdbcBatchItemWriter<Map<String, String>> jdbcBatchItemWriter() {
-        JdbcBatchItemWriter<Map<String, String>> writer = new JdbcBatchItemWriter<>();
-        writer.setDataSource(dataSource);
-        writer.setSql("INSERT INTO your_table_name (column1, column2) VALUES (?, ?)");
-        writer.setItemPreparedStatementSetter((item, preparedStatement) -> {
-            preparedStatement.setString(1, item.getKey());
-            preparedStatement.setString(2, item.getValue());
-        });
-        writer.setAssertUpdates(false); // Disable update count checks for better performance
-        writer.setItemSqlParameterSourceProvider(new MapSqlParameterSourceProvider()); // Optional, helps with named parameters
+public class CustomMapJdbcItemWriter implements ItemWriter<Map<String, String>> {
 
-        // Set the batch size for optimal performance
-        writer.setPageSize(BATCH_SIZE);
-        return writer;
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public CustomMapJdbcItemWriter(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
+
+    @Override
+    public void write(List<? extends Map<String, String>> items) throws Exception {
+        String sql = "insert into person (id, name, constant1, constant2) values (?, ?, ?, ?)";
+
+        for (Map<String, String> item : items) {
+            String id = item.get("id");
+            String name = item.get("name");
+            String constant1 = "your_constant_value_1";
+            String constant2 = "your_constant_value_2";
+
+            // Perform custom logic if needed before or after the insert
+
+            // Execute the insert statement
+            jdbcTemplate.update(sql, id, name, constant1, constant2);
+
+            // Perform additional custom logic after the insert if needed
+        }
+    }
+}
