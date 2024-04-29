@@ -19,3 +19,11 @@ FROM all_constraints a
 JOIN all_constraints c ON a.r_constraint_name = c.constraint_name
 WHERE a.constraint_type = 'R'
   AND a.owner = :your_schema_name;  -- Replace :your_schema_name with your actual schema name
+
+ELECT t.table_name
+FROM all_tables t
+LEFT JOIN all_constraints c ON t.table_name = c.table_name AND c.owner = t.owner
+                             AND c.constraint_type = 'R'
+WHERE t.owner = 'YOUR_SCHEMA_NAME'  -- Replace with your actual schema name
+      AND c.constraint_name IS NULL
+ORDER BY t.table_name;
