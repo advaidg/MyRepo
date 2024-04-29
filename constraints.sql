@@ -27,3 +27,11 @@ LEFT JOIN all_constraints c ON t.table_name = c.table_name AND c.owner = t.owner
 WHERE t.owner = 'YOUR_SCHEMA_NAME'  -- Replace with your actual schema name
       AND c.constraint_name IS NULL
 ORDER BY t.table_name;
+
+
+BEGIN
+  FOR t IN (SELECT table_name FROM all_tables WHERE owner = 'YOUR_SCHEMA_NAME' AND table_name LIKE 'aa%') LOOP
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM ' || t.table_name INTO :count_variable;
+    DBMS_OUTPUT.PUT_LINE('Table: ' || t.table_name || ' - Count: ' || :count_variable);
+  END LOOP;
+END;
