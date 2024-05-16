@@ -1,9 +1,9 @@
-SELECT dt AS missing_date
-FROM (
-  SELECT TRUNC(MIN(load_dt)) + LEVEL - 1 AS dt
-  FROM your_table
-  CONNECT BY TRUNC(MIN(load_dt)) + LEVEL - 1 <= TRUNC(SYSDATE)
-  GROUP BY TRUNC(MIN(load_dt))
+WITH date_series AS (
+  SELECT TRUNC((SELECT MIN(load_dt) FROM your_table)) + LEVEL - 1 AS dt
+  FROM dual
+  CONNECT BY TRUNC((SELECT MIN(load_dt) FROM your_table)) + LEVEL - 1 <= TRUNC(SYSDATE)
 )
-LEFT JOIN your_table ON dt = TRUNC(load_dt)
-WHERE load_dt IS NULL;
+SELECT ds.dt AS missing_date
+FROM date_series ds
+LEFT JOIN your_table yt ON ds.dt = TRUNC(yt.load_dt)
+WHERE yt.load_dt IS NULL;
