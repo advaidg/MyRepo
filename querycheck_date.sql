@@ -1,7 +1,7 @@
 WITH DateRange AS (
-  SELECT DATE '2022-01-01' + LEVEL - 1 AS DateGenerated
+  SELECT TRUNC(DATE '2022-01-01') + LEVEL - 1 AS DateGenerated
   FROM dual
-  CONNECT BY DATE '2022-01-01' + LEVEL - 1 <= DATE '2025-12-31'
+  CONNECT BY TRUNC(DATE '2022-01-01') + LEVEL - 1 <= TRUNC(DATE '2025-12-31')
 )
 SELECT d.DateGenerated
 FROM DateRange d
