@@ -1,10 +1,9 @@
-WITH DateRange AS (
-  SELECT TRUNC(DATE '2022-01-01') + LEVEL - 1 AS DateGenerated
-  FROM dual
-  CONNECT BY TRUNC(DATE '2022-01-01') + LEVEL - 1 <= TRUNC(DATE '2025-12-31')
+SELECT dt AS missing_date
+FROM (
+  SELECT TRUNC(MIN(load_dt)) + LEVEL - 1 AS dt
+  FROM your_table
+  CONNECT BY TRUNC(MIN(load_dt)) + LEVEL - 1 <= TRUNC(SYSDATE)
+  GROUP BY TRUNC(MIN(load_dt))
 )
-SELECT d.DateGenerated
-FROM DateRange d
-LEFT JOIN your_table_name t ON d.DateGenerated = TRUNC(t.load_date)
-WHERE t.load_date IS NULL
-ORDER BY d.DateGenerated;
+LEFT JOIN your_table ON dt = TRUNC(load_dt)
+WHERE load_dt IS NULL;
