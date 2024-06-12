@@ -1,0 +1,34 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- Define the DataSource bean -->
+    <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+        <property name="jndiName" value="java:comp/env/jdbc/YourDataSource"/>
+        <property name="resourceRef" value="true"/>
+    </bean>
+
+    <!-- Atomikos UserTransaction -->
+    <bean id="userTransaction" class="com.atomikos.icatch.jta.UserTransactionImp" init-method="init" destroy-method="close">
+        <property name="transactionTimeout" value="300"/>
+    </bean>
+
+    <!-- Atomikos TransactionManager -->
+    <bean id="atomikosTransactionManager" class="com.atomikos.icatch.jta.UserTransactionManager" init-method="init" destroy-method="close">
+        <property name="forceShutdown" value="false"/>
+    </bean>
+
+    <!-- JTA TransactionManager -->
+    <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager">
+        <property name="userTransaction" ref="userTransaction"/>
+        <property name="transactionManager" ref="atomikosTransactionManager"/>
+    </bean>
+
+    <!-- Enable annotation-driven transaction management -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+</beans>
