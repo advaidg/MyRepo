@@ -1,0 +1,60 @@
+In Oracle, handling of character sets and the storage of characters in VARCHAR2 columns (which is the equivalent of VARCHAR in other databases) depends on the character set defined for the database.
+
+Character Set: Oracle supports several character sets, including WE8ISO8859P1 (Western European 8-bit, similar to Latin-1), AL32UTF8 (UTF-8 encoding), and others.
+
+Single Character Storage:
+
+If your Oracle database is using a single-byte character set like WE8ISO8859P1, each character in the 0-255 range will be stored as a single byte. Therefore, any character in the extended ASCII range will fit into a VARCHAR2(1) column.
+If your Oracle database is using a multi-byte character set like AL32UTF8, characters in the extended ASCII range (0-255) will still typically be stored as a single character. UTF-8 encoding uses one byte for characters in the ASCII range (0-127) and more bytes for characters beyond that. However, Oracle treats VARCHAR2(n) as n characters, not n bytes, meaning you can store any single extended ASCII character in a VARCHAR2(1) column.
+Example
+If your database character set is WE8ISO8859P1:
+
+sql
+Copy code
+CREATE TABLE example_table (
+    single_char_column VARCHAR2(1)
+);
+
+INSERT INTO example_table (single_char_column) VALUES ('é');  -- é is extended ASCII, code 233
+If your database character set is AL32UTF8:
+
+sql
+Copy code
+CREATE TABLE example_table (
+    single_char_column VARCHAR2(1 CHAR)
+);
+
+INSERT INTO example_table (single_char_column) VALUES ('é');  -- é in UTF-8 is two bytes, but one character
+Verification
+You can check your database character set with the following query:
+
+sql
+Copy code
+SELECT parameter, value
+FROM nls_database_parameters
+WHERE parameter = 'NLS_CHARACTERSET';
+Conclusion
+In Oracle, a VARCHAR2(1) column will store any single character from the extended ASCII range (0-255) as long as the character set used by the database supports it. For multi-byte character sets like AL32UTF8, a single extended ASCII character will still be considered one character.
+
+Check db charaet
+ChatGPT
+
+Searched 4 sites
+
+To check the character set of your Oracle database, you can use the following SQL query:
+
+sql
+Copy code
+SELECT parameter, value 
+FROM nls_database_parameters 
+WHERE parameter = 'NLS_CHARACTERSET';
+This will return the character set used by your database. For example, it might return AL32UTF8, WE8MSWIN1252, or another character set depending on how your database is configured.
+
+Additionally, you can check the national character set with:
+
+sql
+Copy code
+SELECT parameter, value 
+FROM nls_database_parameters 
+WHERE parameter = 'NLS_NCHAR_CHARACTERSET';
+These queries will give you the necessary information about the character set configurations of your Oracle database​​​​​​.
