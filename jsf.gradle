@@ -1,0 +1,14 @@
+   // JSF dependencies
+    implementation 'jakarta.faces:jakarta.faces-api:3.0.0'
+
+    // Jakarta dependencies replacing javax
+    implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+    implementation 'jakarta.persistence:jakarta.persistence-api:3.0.0'
+    implementation 'jakarta.transaction:jakarta.transaction-api:2.0.0'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.0'
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.0.0'
+
+    // JAXB dependencies
+    implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.0'
+    implementation 'org.glassfish.jaxb:jaxb-core:3.0.0'
+    implementation 'org.glassfish.jaxb:jaxb-api:3.0.0'
