@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: conditional-retry-ubi-
+spec:
+  entrypoint: check-time
+  templates:
+  - name: check-time
+    steps:
+    - - name: check-time-step
+        template: check-time-step
+        retryStrategy:
+          limit: 10  # Adjust the retry limit as needed
+          retryPolicy: "Always"
+          backoff:
+            duration: "900s"  # Retry every 15 minutes (900 seconds)
+            factor: 1  # No exponential backoff
+            maxDuration: "7200s"  # Maximum backoff duration to ensure retries don't exceed 2 hours in total
+
+  - name: check-time-step
+    script:
+      image: registry.access.redhat.com/ubi8/ubi-minimal
+      command: [bash, -c]
+      source: |
+        #!/bin/bash
+        current_hour=$(date +"%H")
+        
+        # Define the restricted time period (9 AM to 12 PM)
+        restricted_start=9
+        restricted_end=12
+        
+        # Check if current time is within the restricted period
+        if [ "$current_hour" -ge "$restricted_start" ] && [ "$current_hour" -lt "$restricted_end" ]; then
+          echo "Current time is within the specified period. Retrying..."
+          exit 1  # Exit with an error code to trigger the retry
+        else
+          echo "Current time is outside the specified period. Proceeding..."
+          exit 0  # Exit with success code
+
+  - name: whalesay
+    container:
+      image: docker/whalesay
+      command: [cowsay]
+      args: ["A new file was created!"]
+
+  - name: check-time
+    dag:
+      tasks:
+      - name: check-time-step
+        template: check-time-step
+        onExit: whalesay
