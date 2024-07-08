@@ -36,7 +36,7 @@ encrypted_file=$(mktemp)
 echo -n "$encrypted_content" > "$encrypted_file"
 
 # Decrypt the content using OpenSSL and save to output file
-openssl enc -d -aes-256-cbc -in "$encrypted_file" -out "$output_file" -K "$aes_key" -iv "$iv" -p -nopad
+openssl enc -d -aes-256-cbc -in "$encrypted_file" -out "$output_file" -K "$aes_key" -iv "$iv"
 
 # Clean up
 rm -f "$encrypted_file"
