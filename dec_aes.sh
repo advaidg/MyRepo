@@ -29,7 +29,7 @@ encrypted_content=$(decode_url_safe_base64 "$encrypted_content_base64")
 
 # Decode the AES key from the file
 aes_key_base64=$(cat "$aes_key_file")
-aes_key=$(echo "$aes_key_base64" | base64 --decode | xxd -p | tr -d '\n')
+aes_key=$(echo "$aes_key_base64" | base64 --decode)
 
 # Ensure IV and AES key lengths are correct
 if [ ${#iv} -ne 16 ]; then
@@ -37,17 +37,21 @@ if [ ${#iv} -ne 16 ]; then
   exit 1
 fi
 
-if [ ${#aes_key} -ne 64 ]; then
-  echo "Error: AES key length is incorrect. Expected 64 hex characters (32 bytes), got ${#aes_key} characters."
+if [ ${#aes_key} -ne 32 ]; then
+  echo "Error: AES key length is incorrect. Expected 32 bytes, got ${#aes_key} bytes."
   exit 1
 fi
+
+# Convert IV and AES key to hex format for OpenSSL
+iv_hex=$(echo -n "$iv" | xxd -p | tr -d '\n')
+aes_key_hex=$(echo -n "$aes_key" | xxd -p | tr -d '\n')
 
 # Save the encrypted content to a temporary file
 encrypted_file=$(mktemp)
 echo -n "$encrypted_content" > "$encrypted_file"
 
 # Decrypt the content using OpenSSL and save to output file
-openssl enc -d -aes-256-cbc -in "$encrypted_file" -out "$output_file" -K "$aes_key" -iv "$iv"
+openssl enc -d -aes-256-cbc -in "$encrypted_file" -out "$output_file" -K "$aes_key_hex" -iv "$iv_hex"
 
 # Clean up
 rm -f "$encrypted_file"
