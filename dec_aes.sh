@@ -24,12 +24,23 @@ decode_url_safe_base64() {
 IFS='.' read -r iv_base64 encrypted_content_base64 <<< "$base64_encoded_string"
 
 # Decode the IV and encrypted content
-iv=$(decode_url_safe_base64 "$iv_base64" | xxd -p | tr -d '\n')
+iv=$(decode_url_safe_base64 "$iv_base64")
 encrypted_content=$(decode_url_safe_base64 "$encrypted_content_base64")
 
 # Decode the AES key from the file
 aes_key_base64=$(cat "$aes_key_file")
 aes_key=$(echo "$aes_key_base64" | base64 --decode | xxd -p | tr -d '\n')
+
+# Ensure IV and AES key lengths are correct
+if [ ${#iv} -ne 16 ]; then
+  echo "Error: IV length is incorrect. Expected 16 bytes, got ${#iv} bytes."
+  exit 1
+fi
+
+if [ ${#aes_key} -ne 64 ]; then
+  echo "Error: AES key length is incorrect. Expected 64 hex characters (32 bytes), got ${#aes_key} characters."
+  exit 1
+fi
 
 # Save the encrypted content to a temporary file
 encrypted_file=$(mktemp)
