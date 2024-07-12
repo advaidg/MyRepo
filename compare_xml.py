@@ -45,18 +45,28 @@ def compare_dicts(d1, d2, path=''):
     differences = []
     
     if isinstance(d1, collections.OrderedDict) and isinstance(d2, collections.OrderedDict):
-        if len(d1) != len(d2):
-            differences.append(f"Different number of keys at {path}: {len(d1)} != {len(d2)}")
-        for k1, k2 in zip(sorted(d1.keys()), sorted(d2.keys())):
-            if k1 != k2:
-                differences.append(f"Different keys at {path}: {k1} != {k2}")
+        keys1 = list(d1.keys())
+        keys2 = list(d2.keys())
+        if keys1 != keys2:
+            differences.append(f"Different keys at {path}: {keys1} != {keys2}")
+        for key in set(keys1) | set(keys2):
+            if key not in d1:
+                differences.append(f"Key {key} missing in first dict at {path}")
+            elif key not in d2:
+                differences.append(f"Key {key} missing in second dict at {path}")
             else:
-                differences.extend(compare_dicts(d1[k1], d2[k2], path + '/' + k1))
+                differences.extend(compare_dicts(d1[key], d2[key], path + '/' + key))
     elif isinstance(d1, list) and isinstance(d2, list):
         if len(d1) != len(d2):
             differences.append(f"Different number of elements at {path}: {len(d1)} != {len(d2)}")
-        for index, (item1, item2) in enumerate(zip(sorted(d1, key=str), sorted(d2, key=str))):
+        for index, (item1, item2) in enumerate(zip(d1, d2)):
             differences.extend(compare_dicts(item1, item2, path + f'[{index}]'))
+        if len(d1) > len(d2):
+            for index in range(len(d2), len(d1)):
+                differences.append(f"Extra element in first list at {path}[{index}]: {d1[index]}")
+        elif len(d2) > len(d1):
+            for index in range(len(d1), len(d2)):
+                differences.append(f"Extra element in second list at {path}[{index}]: {d2[index]}")
     else:
         if d1 != d2:
             differences.append(f"Different values at {path}: {d1} != {d2}")
