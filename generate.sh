@@ -4,9 +4,9 @@
 openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
 openssl rsa -pubout -in private_key.pem -out public_key.pem
 
-# Encode the keys in Base64
-base64EncodedPrivateKey=$(openssl base64 -in private_key.pem | tr -d '\n')
-base64EncodedPublicKey=$(openssl base64 -in public_key.pem | tr -d '\n')
+# Remove the PEM headers/footers and encode the keys in Base64
+base64EncodedPrivateKey=$(openssl pkcs8 -topk8 -nocrypt -in private_key.pem | openssl base64 -A)
+base64EncodedPublicKey=$(openssl rsa -in private_key.pem -pubout | openssl base64 -A)
 
 # Print the Base64 encoded keys
 echo "Base64 Encoded Public Key:"
