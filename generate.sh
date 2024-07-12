@@ -10,10 +10,10 @@ openssl pkcs8 -topk8 -inform PEM -outform PEM -in private_key.pem -out private_k
 openssl rsa -pubout -in private_key.pem -out public_key_x509.pem
 
 # Encode the Private Key (PKCS8) in Base64 and ensure it is a single line
-openssl base64 -A -in private_key_pkcs8.pem -out private_key_base64.txt
+openssl base64 -A -in private_key_pkcs8.pem | tr -d '\n' > private_key_base64.txt
 
 # Encode the Public Key (X.509) in Base64 and ensure it is a single line
-openssl base64 -A -in public_key_x509.pem -out public_key_base64.txt
+openssl base64 -A -in public_key_x509.pem | tr -d '\n' > public_key_base64.txt
 
 echo "Private Key (PKCS8) Base64 encoded: "
 cat private_key_base64.txt
