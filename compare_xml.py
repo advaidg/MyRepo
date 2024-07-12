@@ -20,7 +20,7 @@ def xml_to_dict(element, skip_tags=None):
         return element.text
 
     data_dict = collections.OrderedDict()
-    for child in sorted(element, key=lambda x: x.tag):
+    for child in element:
         if child.tag in skip_tags:
             continue
 
@@ -31,7 +31,7 @@ def xml_to_dict(element, skip_tags=None):
         if child.tag not in data_dict:
             data_dict[child.tag] = child_dict
         else:
-            if type(data_dict[child.tag]) is list:
+            if isinstance(data_dict[child.tag], list):
                 data_dict[child.tag].append(child_dict)
             else:
                 data_dict[child.tag] = [data_dict[child.tag], child_dict]
@@ -52,7 +52,7 @@ def compare_dicts(d1, d2):
     elif isinstance(d1, list) and isinstance(d2, list):
         if len(d1) != len(d2):
             return False
-        for item1, item2 in zip(sorted(d1), sorted(d2)):
+        for item1, item2 in zip(sorted(d1, key=str), sorted(d2, key=str)):
             if not compare_dicts(item1, item2):
                 return False
         return True
