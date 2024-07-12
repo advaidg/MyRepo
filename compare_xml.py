@@ -38,26 +38,30 @@ def xml_to_dict(element, skip_tags=None):
 
     return data_dict
 
-def compare_dicts(d1, d2):
+def compare_dicts(d1, d2, path=''):
     """
-    Compare two dictionaries and return a boolean indicating whether they are equal.
+    Compare two dictionaries and print the differences.
     """
+    differences = []
+    
     if isinstance(d1, collections.OrderedDict) and isinstance(d2, collections.OrderedDict):
         if len(d1) != len(d2):
-            return False
+            differences.append(f"Different number of keys at {path}: {len(d1)} != {len(d2)}")
         for k1, k2 in zip(sorted(d1.keys()), sorted(d2.keys())):
-            if k1 != k2 or not compare_dicts(d1[k1], d2[k2]):
-                return False
-        return True
+            if k1 != k2:
+                differences.append(f"Different keys at {path}: {k1} != {k2}")
+            else:
+                differences.extend(compare_dicts(d1[k1], d2[k2], path + '/' + k1))
     elif isinstance(d1, list) and isinstance(d2, list):
         if len(d1) != len(d2):
-            return False
-        for item1, item2 in zip(sorted(d1, key=str), sorted(d2, key=str)):
-            if not compare_dicts(item1, item2):
-                return False
-        return True
+            differences.append(f"Different number of elements at {path}: {len(d1)} != {len(d2)}")
+        for index, (item1, item2) in enumerate(zip(sorted(d1, key=str), sorted(d2, key=str))):
+            differences.extend(compare_dicts(item1, item2, path + f'[{index}]'))
     else:
-        return d1 == d2
+        if d1 != d2:
+            differences.append(f"Different values at {path}: {d1} != {d2}")
+    
+    return differences
 
 def compare_xml_files(file1, file2, skip_tags=None):
     root1 = parse_xml(file1)
@@ -66,12 +70,18 @@ def compare_xml_files(file1, file2, skip_tags=None):
     dict1 = xml_to_dict(root1, skip_tags)
     dict2 = xml_to_dict(root2, skip_tags)
 
-    return compare_dicts(dict1, dict2)
+    differences = compare_dicts(dict1, dict2)
+    
+    if not differences:
+        print("The XML files are identical.")
+    else:
+        print("The XML files are different. Differences:")
+        for diff in differences:
+            print(diff)
 
 # Example usage:
 file1 = 'path_to_first_xml.xml'
 file2 = 'path_to_second_xml.xml'
 skip_tags = ['tag_to_skip1', 'tag_to_skip2']  # Add the tags you want to skip here
 
-are_equal = compare_xml_files(file1, file2, skip_tags)
-print(f"The XML files are {'identical' if are_equal else 'different'}.")
+compare_xml_files(file1, file2, skip_tags)
