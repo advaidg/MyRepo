@@ -84,11 +84,6 @@ public class JsonComparator {
     }
 
     public static void compareJsonNodes(String path, JsonNode node1, JsonNode node2, List<String> differences) {
-        if (node1 == null || node2 == null) {
-            differences.add("Node missing at " + path + ": " + (node1 == null ? "missing in first JSON" : "missing in second JSON"));
-            return;
-        }
-
         if (node1.isObject() && node2.isObject()) {
             Set<String> fieldNames = new HashSet<>();
             node1.fieldNames().forEachRemaining(fieldNames::add);
@@ -103,8 +98,16 @@ public class JsonComparator {
             if (node1.size() != node2.size()) {
                 differences.add("Array size differs at " + path + ": " + node1.size() + " vs " + node2.size());
             } else {
-                for (int i = 0; i < node1.size(); i++) {
-                    compareJsonNodes(path + "[" + i + "]", node1.get(i), node2.get(i), differences);
+                List<JsonNode> nodeList1 = new ArrayList<>();
+                List<JsonNode> nodeList2 = new ArrayList<>();
+                node1.forEach(nodeList1::add);
+                node2.forEach(nodeList2::add);
+
+                nodeList1.sort(Comparator.comparing(JsonNode::toString));
+                nodeList2.sort(Comparator.comparing(JsonNode::toString));
+
+                for (int i = 0; i < nodeList1.size(); i++) {
+                    compareJsonNodes(path + "[" + i + "]", nodeList1.get(i), nodeList2.get(i), differences);
                 }
             }
         } else if (!node1.equals(node2)) {
