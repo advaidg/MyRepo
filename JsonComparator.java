@@ -84,6 +84,11 @@ public class JsonComparator {
     }
 
     public static void compareJsonNodes(String path, JsonNode node1, JsonNode node2, List<String> differences) {
+        if (node1 == null || node2 == null) {
+            differences.add("Node missing at " + path + ": " + (node1 == null ? "missing in first JSON" : "missing in second JSON"));
+            return;
+        }
+
         if (node1.isObject() && node2.isObject()) {
             Set<String> fieldNames = new HashSet<>();
             node1.fieldNames().forEachRemaining(fieldNames::add);
@@ -99,59 +104,11 @@ public class JsonComparator {
                 differences.add("Array size differs at " + path + ": " + node1.size() + " vs " + node2.size());
             } else {
                 for (int i = 0; i < node1.size(); i++) {
-                    boolean matchFound = false;
-                    for (int j = 0; j < node2.size(); j++) {
-                        if (areJsonNodesEqual(node1.get(i), node2.get(j))) {
-                            matchFound = true;
-                            break;
-                        }
-                    }
-                    if (!matchFound) {
-                        differences.add("Difference found in array at " + path + ": " + node1.get(i) + " vs " + node2);
-                    }
+                    compareJsonNodes(path + "[" + i + "]", node1.get(i), node2.get(i), differences);
                 }
             }
-        } else if (!Objects.equals(node1, node2)) {
+        } else if (!node1.equals(node2)) {
             differences.add("Value differs at " + path + ": " + node1 + " vs " + node2);
-        }
-    }
-
-    public static boolean areJsonNodesEqual(JsonNode node1, JsonNode node2) {
-        if (node1 == null || node2 == null) {
-            return node1 == node2;
-        }
-
-        if (node1.isObject() && node2.isObject()) {
-            Set<String> fieldNames = new HashSet<>();
-            node1.fieldNames().forEachRemaining(fieldNames::add);
-            node2.fieldNames().forEachRemaining(fieldNames::add);
-
-            for (String fieldName : fieldNames) {
-                if (!areJsonNodesEqual(node1.get(fieldName), node2.get(fieldName))) {
-                    return false;
-                }
-            }
-            return true;
-        } else if (node1.isArray() && node2.isArray()) {
-            if (node1.size() != node2.size()) {
-                return false;
-            }
-
-            List<JsonNode> nodeList1 = new ArrayList<>();
-            List<JsonNode> nodeList2 = new ArrayList<>();
-            node1.forEach(nodeList1::add);
-            node2.forEach(nodeList2::add);
-            nodeList1.sort(Comparator.comparing(JsonNode::toString));
-            nodeList2.sort(Comparator.comparing(JsonNode::toString));
-
-            for (int i = 0; i < nodeList1.size(); i++) {
-                if (!areJsonNodesEqual(nodeList1.get(i), nodeList2.get(i))) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return node1.equals(node2);
         }
     }
 
