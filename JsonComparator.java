@@ -7,7 +7,7 @@ import com.flipkart.zjsonpatch.JsonDiff;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -31,21 +31,23 @@ public class JsonComparator {
         }
     }
 
-    public static JsonNode sortJson(JsonNode node, String sortKey) {
+    public static JsonNode sortJson(JsonNode node) {
         if (node.isObject()) {
             ObjectNode sortedNode = new ObjectMapper().createObjectNode();
-            node.fieldNames().forEachRemaining(field -> sortedNode.set(field, sortJson(node.get(field), sortKey)));
-            return sortedNode;
+            node.fieldNames().asIterator().forEachRemaining(field -> sortedNode.set(field, sortJson(node.get(field))));
+            List<String> sortedKeys = new ArrayList<>();
+            node.fieldNames().forEachRemaining(sortedKeys::add);
+            Collections.sort(sortedKeys);
+            ObjectNode sortedObjNode = new ObjectMapper().createObjectNode();
+            for (String key : sortedKeys) {
+                sortedObjNode.set(key, sortedNode.get(key));
+            }
+            return sortedObjNode;
         } else if (node.isArray()) {
             ArrayNode sortedArray = new ObjectMapper().createArrayNode();
             List<JsonNode> nodeList = new ArrayList<>();
             node.forEach(nodeList::add);
-
-            if (sortKey != null && nodeList.stream().allMatch(n -> n.has(sortKey))) {
-                nodeList.sort(Comparator.comparing(n -> n.get(sortKey).asText()));
-            } else {
-                nodeList.sort(Comparator.comparing(JsonNode::toString));
-            }
+            nodeList.sort((a, b) -> a.toString().compareTo(b.toString()));
             nodeList.forEach(sortedArray::add);
             return sortedArray;
         } else {
@@ -58,7 +60,7 @@ public class JsonComparator {
         mapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), data);
     }
 
-    public static void compareJsons(String file1, String file2, List<String> keysToRemove, String sortKey) throws IOException {
+    public static void compareJsons(String file1, String file2, List<String> keysToRemove) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode json1 = mapper.readTree(new File(file1));
         JsonNode json2 = mapper.readTree(new File(file2));
@@ -68,8 +70,8 @@ public class JsonComparator {
         removeElements(json2, keysToRemove);
 
         // Sort JSON data
-        JsonNode sortedJson1 = sortJson(json1, sortKey);
-        JsonNode sortedJson2 = sortJson(json2, sortKey);
+        JsonNode sortedJson1 = sortJson(json1);
+        JsonNode sortedJson2 = sortJson(json2);
 
         // Save modified and sorted JSON files for inspection (optional)
         saveJson("sorted_" + file1, sortedJson1);
@@ -84,9 +86,22 @@ public class JsonComparator {
             for (JsonNode d : diff) {
                 String op = d.get("op").asText();
                 String path = d.get("path").asText();
-                JsonNode value = d.get("value");
-                if ("replace".equals(op) || "add".equals(op) || "remove".equals(op)) {
-                    System.out.println(op.toUpperCase() + " " + value + " at " + path);
+                switch (op) {
+                    case "add":
+                        System.out.println("Added value: " + d.get("value") + " at " + path);
+                        break;
+                    case "remove":
+                        JsonNode removedValue = sortedJson1.at(path);
+                        System.out.println("Removed value: " + removedValue + " from " + path);
+                        break;
+                    case "replace":
+                        JsonNode oldValue = sortedJson1.at(path);
+                        JsonNode newValue = d.get("value");
+                        System.out.println("Replaced value: " + oldValue + " with " + newValue + " at " + path);
+                        break;
+                    default:
+                        System.out.println("Unknown operation " + op + " at " + path);
+                        break;
                 }
             }
         } else {
@@ -98,10 +113,9 @@ public class JsonComparator {
         String file1 = "file1.json"; // Replace with your JSON file path
         String file2 = "file2.json"; // Replace with your JSON file path
         List<String> keysToRemove = List.of("timestamp", "id"); // Replace with keys to remove before comparison
-        String sortKey = "unique_id"; // Replace with the unique key for sorting lists of dictionaries, if applicable
 
         try {
-            compareJsons(file1, file2, keysToRemove, sortKey);
+            compareJsons(file1, file2, keysToRemove);
         } catch (IOException e) {
             e.printStackTrace();
         }
