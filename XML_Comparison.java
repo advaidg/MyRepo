@@ -12,8 +12,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,14 +47,22 @@ public class XMLComparator {
                 }
             }
 
-            children.sort(Comparator.comparing(Element::getTagName));
+            // Normalize each child before reordering
+            for (Element child : children) {
+                normalizeXML(child);
+            }
 
+            // Reorder children within the parent element
             for (Element child : children) {
                 element.removeChild(child);
             }
-
+            children.sort((e1, e2) -> {
+                String e1String = e1.getTagName() + ":" + e1.getTextContent();
+                String e2String = e2.getTagName() + ":" + e2.getTextContent();
+                return e1String.compareTo(e2String);
+            });
             for (Element child : children) {
-                element.appendChild(normalizeXML(child));
+                element.appendChild(child);
             }
         }
         return node;
