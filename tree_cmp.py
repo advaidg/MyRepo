@@ -3,12 +3,9 @@ import xml.etree.ElementTree as ET
 def get_structure(element, path=""):
     structure = []
     children = list(element)
-    if not children:
-        return [path + "/" + element.tag]
-    else:
-        structure.append(path + "/" + element.tag)
-        for child in children:
-            structure.extend(get_structure(child, path + "/" + element.tag))
+    structure.append(path + "/" + element.tag)
+    for child in children:
+        structure.extend(get_structure(child, path + "/" + element.tag))
     return structure
 
 def compare_structures(struct1, struct2):
