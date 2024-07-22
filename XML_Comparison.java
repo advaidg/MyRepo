@@ -14,7 +14,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class XMLComparator {
 
@@ -116,28 +118,30 @@ public class XMLComparator {
 
             NodeList children1 = element1.getChildNodes();
             NodeList children2 = element2.getChildNodes();
-            if (children1.getLength() != children2.getLength()) {
-                differences.add("Child node count differs at " + path + ": " + children1.getLength() + " vs " + children2.getLength());
-                return;
-            }
-
             List<Node> nodeList1 = new ArrayList<>();
             List<Node> nodeList2 = new ArrayList<>();
+
             for (int i = 0; i < children1.getLength(); i++) {
-                nodeList1.add(children1.item(i));
+                if (children1.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                    nodeList1.add(children1.item(i));
+                }
             }
             for (int i = 0; i < children2.getLength(); i++) {
-                nodeList2.add(children2.item(i));
+                if (children2.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                    nodeList2.add(children2.item(i));
+                }
             }
 
-            nodeList1.sort(Comparator.comparing(Node::getNodeName));
-            nodeList2.sort(Comparator.comparing(Node::getNodeName));
+            if (nodeList1.size() != nodeList2.size()) {
+                differences.add("Number of child elements differs at " + path + ": " + nodeList1.size() + " vs " + nodeList2.size());
+                return;
+            }
 
             for (int i = 0; i < nodeList1.size(); i++) {
                 compareXMLNodes(path + "/" + nodeList1.get(i).getNodeName(), nodeList1.get(i), nodeList2.get(i), differences);
             }
-        } else if (!node1.isEqualNode(node2)) {
-            differences.add("Value differs at " + path + ": " + node1.getTextContent() + " vs " + node2.getTextContent());
+        } else if (node1.getNodeType() != node2.getNodeType() || !node1.getNodeName().equals(node2.getNodeName())) {
+            differences.add("Node type or name differs at " + path + ": " + node1.getNodeName() + " vs " + node2.getNodeName());
         }
     }
 
