@@ -9,48 +9,53 @@ import java.util.*;
 
 public class XMLComparator {
 
-    public static void removeElements(Element element, List<String> tagsToRemove) {
-        // Handle removing elements by iterating over child nodes
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                Element childElement = (Element) child;
-                if (tagsToRemove.contains(childElement.getTagName())) {
-                    element.removeChild(child);
-                    i--; // Adjust index after removal
-                } else {
-                    removeElements(childElement, tagsToRemove); // Recursive call for nested elements
+    public static void removeElements(Node node, List<String> tagsToRemove) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            List<Node> nodesToRemove = new ArrayList<>();
+            for (String tag : tagsToRemove) {
+                NodeList children = element.getElementsByTagName(tag);
+                for (int i = 0; i < children.getLength(); i++) {
+                    nodesToRemove.add(children.item(i));
                 }
+            }
+            for (Node child : nodesToRemove) {
+                element.removeChild(child);
+            }
+            NodeList children = element.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                removeElements(children.item(i), tagsToRemove);
             }
         }
     }
 
-    public static void normalizeXML(Element element) {
-        // Sort and normalize child elements within this element
-        List<Element> children = new ArrayList<>();
-        NodeList childNodes = element.getChildNodes();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node child = childNodes.item(i);
-            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                children.add((Element) child);
+    public static void normalizeXML(Node node) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element element = (Element) node;
+            List<Element> children = new ArrayList<>();
+            NodeList childNodes = element.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                Node child = childNodes.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE) {
+                    children.add((Element) child);
+                }
             }
-        }
 
-        // Normalize each child element
-        for (Element child : children) {
-            normalizeXML(child);
-        }
+            // Normalize each child element
+            for (Element child : children) {
+                normalizeXML(child);
+            }
 
-        // Sort children based on tag name and text content
-        children.sort(Comparator.comparing(e -> e.getTagName() + ":" + e.getTextContent()));
+            // Sort children based on tag name and text content
+            children.sort(Comparator.comparing(e -> e.getTagName() + ":" + e.getTextContent().trim()));
 
-        // Remove and re-add sorted children to ensure consistent order
-        for (Element child : children) {
-            element.removeChild(child);
-        }
-        for (Element child : children) {
-            element.appendChild(child);
+            // Remove and re-add sorted children to ensure consistent order
+            for (Element child : children) {
+                element.removeChild(child);
+            }
+            for (Element child : children) {
+                element.appendChild(child);
+            }
         }
     }
 
@@ -78,8 +83,8 @@ public class XMLComparator {
         normalizeXML(doc2.getDocumentElement());
 
         // Save normalized XML files for inspection (optional)
-        saveXML("normalized_" + file1, doc1);
-        saveXML("normalized_" + file2, doc2);
+        saveXML("normalized_" + new File(file1).getName(), doc1);
+        saveXML("normalized_" + new File(file2).getName(), doc2);
 
         // Compare XML data
         List<String> differences = new ArrayList<>();
@@ -131,10 +136,10 @@ public class XMLComparator {
 
             // Compare each child element
             for (int i = 0; i < nodeList1.size(); i++) {
-                compareXMLNodes(path + "/" + nodeList1.get(i).getNodeName(), nodeList1.get(i), nodeList2.get(i), differences);
+                compareXMLNodes(path + "/" + nodeList1.get(i).getNodeName() + "[" + i + "]", nodeList1.get(i), nodeList2.get(i), differences);
             }
-        } else if (node1.getNodeType() != node2.getNodeType() || !node1.getNodeName().equals(node2.getNodeName())) {
-            differences.add("Node type or name differs at " + path + ": " + node1.getNodeName() + " vs " + node2.getNodeName());
+        } else if (!node1.getNodeName().equals(node2.getNodeName())) {
+            differences.add("Node name differs at " + path + ": " + node1.getNodeName() + " vs " + node2.getNodeName());
         }
     }
 
