@@ -1,11 +1,13 @@
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 
 def get_structure(element, path=""):
     structure = []
     children = list(element)
-    structure.append(path + "/" + element.tag)
+    current_path = path + "/" + element.tag
+    structure.append(current_path)
     for child in children:
-        structure.extend(get_structure(child, path + "/" + element.tag))
+        structure.extend(get_structure(child, current_path))
     return structure
 
 def compare_structures(struct1, struct2):
