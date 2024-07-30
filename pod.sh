@@ -22,14 +22,12 @@ CONTAINER_STATUSES=$(echo $POD_JSON | jq -r '.status.containerStatuses')
 TOTAL_INIT_TIME=0
 POD_RUNNING_TIME=0
 CONTAINER_COUNT=0
-RUNNING_TIME=0
 
-for container in $(echo "${CONTAINER_STATUSES}" | jq -r '.[] | @base64'); do
+for row in $(echo "${CONTAINER_STATUSES}" | jq -r '.[] | @base64'); do
     _jq() {
-        echo ${container} | base64 --decode | jq -r ${1}
+        echo ${row} | base64 --decode | jq -r ${1}
     }
 
-    CONTAINER_NAME=$(_jq '.name')
     RUNNING_STARTED_AT=$(_jq '.state.running.startedAt')
 
     if [ ! -z "$RUNNING_STARTED_AT" ]; then
@@ -38,8 +36,8 @@ for container in $(echo "${CONTAINER_STATUSES}" | jq -r '.[] | @base64'); do
         INIT_TIME=$((START_TIME_SEC - CREATION_TIME_SEC))
         TOTAL_INIT_TIME=$((TOTAL_INIT_TIME + INIT_TIME))
         CONTAINER_COUNT=$((CONTAINER_COUNT + 1))
-        if [ $START_TIME_SEC -gt $RUNNING_TIME ]; then
-            RUNNING_TIME=$START_TIME_SEC
+        if [ $START_TIME_SEC -gt $POD_RUNNING_TIME ]; then
+            POD_RUNNING_TIME=$START_TIME_SEC
         fi
     fi
 done
@@ -48,8 +46,8 @@ if [ $CONTAINER_COUNT -gt 0 ]; then
     # Calculate total times
     CREATION_TIME_SEC=$(date -d "$CREATION_TIME" +%s)
     SCHEDULED_TIME_SEC=$(date -d "$SCHEDULED_TIME" +%s)
-    TOTAL_TIME=$((RUNNING_TIME - SCHEDULED_TIME_SEC))
-    SPIN_UP_TIME=$((RUNNING_TIME - CREATION_TIME_SEC))
+    TOTAL_TIME=$((POD_RUNNING_TIME - SCHEDULED_TIME_SEC))
+    SPIN_UP_TIME=$((POD_RUNNING_TIME - CREATION_TIME_SEC))
     INIT_TIME_AVG=$((TOTAL_INIT_TIME / CONTAINER_COUNT))
 
     # Output results
