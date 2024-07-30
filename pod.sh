@@ -23,12 +23,8 @@ TOTAL_INIT_TIME=0
 POD_RUNNING_TIME=0
 CONTAINER_COUNT=0
 
-for row in $(echo "${CONTAINER_STATUSES}" | jq -r '.[] | @base64'); do
-    _jq() {
-        echo ${row} | base64 --decode | jq -r ${1}
-    }
-
-    RUNNING_STARTED_AT=$(_jq '.state.running.startedAt')
+for row in $(echo "${CONTAINER_STATUSES}" | jq -c '.[]'); do
+    RUNNING_STARTED_AT=$(echo $row | jq -r '.state.running.startedAt')
 
     if [ ! -z "$RUNNING_STARTED_AT" ]; then
         START_TIME_SEC=$(date -d "$RUNNING_STARTED_AT" +%s)
