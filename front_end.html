@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Filter Application</title>
+</head>
+<body>
+
+<h3>Enter FL ID and FN Code</h3>
+<label for="fl_id">FL ID:</label>
+<input type="text" id="fl_id">
+<br>
+<label for="fn_code">FN Code:</label>
+<input type="text" id="fn_code">
+<br>
+<button onclick="loadData()">Load Data</button>
+
+<h3>Filter Options</h3>
+<label for="filter_col1">Filter Column 1:</label>
+<input type="text" id="filter_col1" oninput="applyFilters()">
+<br>
+<label for="filter_col2">Filter Column 2:</label>
+<input type="text" id="filter_col2" oninput="applyFilters()">
+<br><br>
+
+<table border="1" id="data_table">
+    <thead>
+        <tr>
+            <th>Column 1</th>
+            <th>Column 2</th>
+            <th>Column 3</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Elapsed Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Data will be populated here -->
+    </tbody>
+</table>
+
+<script>
+    function loadData() {
+        const fl_id = document.getElementById('fl_id').value;
+        const fn_code = document.getElementById('fn_code').value;
+
+        fetch('/get_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fl_id, fn_code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('data_table').getElementsByTagName('tbody')[0];
+            tableBody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.col1}</td>
+                    <td>${row.col2}</td>
+                    <td>${row.col3}</td>
+                    <td>${row.start_time}</td>
+                    <td>${row.end_time}</td>
+                    <td>${row.elapsed_time}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        });
+    }
+
+    function applyFilters() {
+        const filterCol1 = document.getElementById('filter_col1').value.toLowerCase();
+        const filterCol2 = document.getElementById('filter_col2').value.toLowerCase();
+        const rows = document.getElementById('data_table').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (const row of rows) {
+            const col1 = row.cells[0].textContent.toLowerCase();
+            const col2 = row.cells[1].textContent.toLowerCase();
+            if (col1.includes(filterCol1) && col2.includes(filterCol2)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
