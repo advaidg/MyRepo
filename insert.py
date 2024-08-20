@@ -12,7 +12,7 @@ current_date = datetime.now().strftime("%d-%b-%y").upper()
 with open(input_file_path, 'r') as file, open(output_file_path, 'w') as sqlfile:
     for line in file:
         # Extract 1234, D1.D2, and the value "2"
-        match = re.match(r'(\d+):[A-Z]+\.(D\d\.\D\d)\.\d+', line.strip())
+        match = re.match(r'(\d+):[A-Z]+\.(D\d\.\D\d)\.\d+', line)
         if match:
             first_value = match.group(1)
             second_value = match.group(2)
