@@ -1,0 +1,15 @@
+# p6spy configuration
+modulelist=com.p6spy.engine.spy.P6SpyFactory
+
+# Output logs to your logging system (e.g., Log4j, SLF4J)
+appender=com.p6spy.engine.spy.appender.Slf4JLogger
+logMessageFormat=com.p6spy.engine.spy.appender.CustomLineFormat
+
+# Custom log message format
+# This example logs execution time, the SQL query on a single line, and the category (e.g., statement, batch)
+customLogMessageFormat=%(executionTime)ms | %(sqlSingleLine) | category: %(category)
+
+# Log level for P6Spy
+log4j.logger.com.p6spy.engine.spy.P6SpyLogger=TRACE
+
+# You can adjust additional settings, such as logging thresholds or filtering, if needed
