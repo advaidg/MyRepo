@@ -1,9 +1,23 @@
 import xml.etree.ElementTree as ET
 
+def parse_properties(bean_element):
+    properties = []
+    for prop in bean_element.findall("property"):
+        prop_name = prop.get("name")
+        value = prop.get("value")
+        ref = prop.get("ref")
+        nested_bean = prop.find("bean")
+
+        if value:
+            properties.append({"name": prop_name, "value": f'"{value}"'})
+        elif ref:
+            properties.append({"name": prop_name, "value": f"{ref}()"})
+        elif nested_bean is not None:
+            nested_class = nested_bean.get("class")
+            properties.append({"name": prop_name, "value": f"new {nested_class}()"})
+    return properties
+
 def generate_java_method(bean_id, bean_class, constructor_args, properties):
-    """
-    Generates the Java method for the given bean configuration.
-    """
     method = f"@Bean\npublic {bean_class} {bean_id}() {{\n"
     
     if constructor_args:
@@ -20,39 +34,7 @@ def generate_java_method(bean_id, bean_class, constructor_args, properties):
     
     return method
 
-def parse_constructor_args(bean_element):
-    """
-    Parses the constructor-arg elements of a bean and returns a list of arguments.
-    """
-    args = []
-    for arg in bean_element.findall("constructor-arg"):
-        value = arg.get("value")
-        ref = arg.get("ref")
-        if value:
-            args.append(f'"{value}"')
-        elif ref:
-            args.append(f"{ref}()")
-    return args
-
-def parse_properties(bean_element):
-    """
-    Parses the property elements of a bean and returns a list of properties.
-    """
-    properties = []
-    for prop in bean_element.findall("property"):
-        prop_name = prop.get("name")
-        value = prop.get("value")
-        ref = prop.get("ref")
-        if value:
-            properties.append({"name": prop_name, "value": f'"{value}"'})
-        elif ref:
-            properties.append({"name": prop_name, "value": f"{ref}()"})
-    return properties
-
 def convert_xml_to_java_config(xml_file, output_file):
-    """
-    Converts the given Spring XML configuration file to Java configuration.
-    """
     tree = ET.parse(xml_file)
     root = tree.getroot()
     
@@ -65,7 +47,7 @@ def convert_xml_to_java_config(xml_file, output_file):
         for bean in root.findall("bean"):
             bean_id = bean.get("id")
             bean_class = bean.get("class")
-            constructor_args = parse_constructor_args(bean)
+            constructor_args = []  # Assuming no constructor args for simplicity
             properties = parse_properties(bean)
             java_method = generate_java_method(bean_id, bean_class, constructor_args, properties)
             java_file.write(java_method + "\n")
